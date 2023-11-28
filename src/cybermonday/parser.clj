@@ -21,7 +21,9 @@
    (com.vladsch.flexmark.ext.gfm.tasklist TaskListExtension TaskListItem)
    (com.vladsch.flexmark.test.util AstCollectingVisitor)
    (com.vladsch.flexmark.ext.gitlab GitLabExtension GitLabInlineMath)
-   (com.vladsch.flexmark.ext.toc TocExtension TocBlock)))
+   (com.vladsch.flexmark.ext.toc TocExtension TocBlock)
+   (com.vladsch.flexmark.ext.definition DefinitionExtension DefinitionList DefinitionTerm DefinitionItem) ; DPETZ
+   ))
 
 (set! *warn-on-reflection* true)
 
@@ -35,13 +37,17 @@
             (FootnoteExtension/create)
             (StrikethroughExtension/create)
             (TaskListExtension/create)
-            (GitLabExtension/create)])
+            (GitLabExtension/create)
+            (DefinitionExtension/create) ; DPETZ
+            ])
       (toImmutable)))
 
 (def parser
   "The instance of the Flexmark parser.
   Can be called like `(.parse parser document-string)` to yeild a `document` Flexmark parse object"
-  (.build (Parser/builder options)))
+  (do
+    (println "My new Parser!")
+    (.build (Parser/builder options))))
 
 (defn parse
   "Invoke the native parser"
@@ -201,6 +207,16 @@
   TocBlock
   (to-hiccup [this _]
     [:markdown/table-of-contents {:style (str (.getStyle this))}])
-  nil
+
+  DefinitionList
+  (to-hiccup [this source] 
+     (make-hiccup-node :markdown/def-list {}
+                       (map-children-to-hiccup this source)))
+           
+   DefinitionTerm
   (to-hiccup [this _]
-    nil))
+             [:markdown/def-term {} (str (.getChars this))])
+  
+   DefinitionItem
+  (to-hiccup [this _]
+             [:markdown/def-item {} (str (.getChars this))]))

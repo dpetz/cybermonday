@@ -19,3 +19,7 @@ yarn.lock
 
 # clj-kondo and lsp
 .cache
+
+# DPETZ
+.calva/
+pom.xml
